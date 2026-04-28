@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MTESS · Salarios de Funcionarios 2021-2024</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-card">
+    <div class="login-brand">
+      <i class="bi bi-shield-lock-fill"></i>
+      <h1>MTESS</h1>
+      <p>Funcionarios &amp; Salarios · 2021-2024</p>
+    </div>
+    <form id="login-form" autocomplete="off">
+      <div class="mb-3">
+        <label class="form-label">Usuario</label>
+        <input type="text" class="form-control" id="login-user" placeholder="user" autofocus>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="login-pass" placeholder="••••">
+      </div>
+      <div id="login-error" class="alert alert-danger d-none py-2">Credenciales inválidas</div>
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-box-arrow-in-right"></i> Ingresar
+      </button>
+      <div class="login-hint">
+        <small>Usuario: <code>user</code> · Contraseña: <code>123</code></small>
+      </div>
+    </form>
+  </div>
+  <div class="login-bg"></div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app-screen" class="d-none">
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-brand">
+      <i class="bi bi-bar-chart-fill"></i>
+      <div>
+        <div class="brand-title">MTESS</div>
+        <div class="brand-sub">Salarios 2021-2024</div>
+      </div>
+    </div>
+    <ul class="nav-list">
+      <li><a href="#" class="nav-link active" data-view="overview"><i class="bi bi-speedometer2"></i> Resumen</a></li>
+      <li><a href="#" class="nav-link" data-view="ranking"><i class="bi bi-trophy"></i> Ranking</a></li>
+      <li><a href="#" class="nav-link" data-view="search"><i class="bi bi-person-badge"></i> Funcionario</a></li>
+      <li><a href="#" class="nav-link" data-view="concepto"><i class="bi bi-tags"></i> Por concepto</a></li>
+      <li><a href="#" class="nav-link" data-view="estado"><i class="bi bi-people"></i> Por estado</a></li>
+      <li><a href="#" class="nav-link" data-view="evolucion"><i class="bi bi-graph-up-arrow"></i> Evolución</a></li>
+      <li><a href="#" class="nav-link" data-view="datos"><i class="bi bi-table"></i> Datos crudos</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn btn-sm btn-outline-light w-100">
+        <i class="bi bi-box-arrow-left"></i> Salir
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main id="main-content">
+    <header id="topbar">
+      <div>
+        <h2 id="view-title">Resumen general</h2>
+        <p id="view-subtitle" class="text-muted mb-0">Panorama global del gasto en remuneraciones</p>
+      </div>
+      <div class="topbar-controls">
+        <select id="year-filter" class="form-select form-select-sm">
+          <option value="all">Todos los años</option>
+          <option value="2021">2021</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+          <option value="2024" selected>2024</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- ===== OVERVIEW ===== -->
+    <section data-section="overview" class="view active">
+      <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="stat-card stat-blue">
+          <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+          <div class="stat-label">Funcionarios</div>
+          <div class="stat-value" id="stat-personas">—</div>
+          <div class="stat-foot" id="stat-personas-foot"></div>
+        </div></div>
+        <div class="col-md-3"><div class="stat-card stat-green">
+          <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+          <div class="stat-label">Gasto total anual</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-foot" id="stat-total-foot"></div>
+        </div></div>
+        <div class="col-md-3"><div class="stat-card stat-orange">
+          <div class="stat-icon"><i class="bi bi-calculator"></i></div>
+          <div class="stat-label">Promedio mensual</div>
+          <div class="stat-value" id="stat-prom">—</div>
+          <div class="stat-foot">por funcionario</div>
+        </div></div>
+        <div class="col-md-3"><div class="stat-card stat-purple">
+          <div class="stat-icon"><i class="bi bi-arrow-up-right"></i></div>
+          <div class="stat-label">Salario más alto</div>
+          <div class="stat-value" id="stat-max">—</div>
+          <div class="stat-foot" id="stat-max-foot"></div>
+        </div></div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-lg-7"><div class="panel">
+          <div class="panel-head">
+            <h5>Evolución del gasto total por año</h5>
+            <small class="text-muted">Suma de todas las remuneraciones (sueldos + bonificaciones + aguinaldos)</small>
+          </div>
+          <canvas id="chart-evolucion-anual"></canvas>
+        </div></div>
+        <div class="col-lg-5"><div class="panel">
+          <div class="panel-head">
+            <h5>Distribución por estado</h5>
+            <small class="text-muted">Permanentes vs contratados vs comisionados</small>
+          </div>
+          <canvas id="chart-estado"></canvas>
+        </div></div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-lg-6"><div class="panel">
+          <div class="panel-head"><h5>Top 10 funcionarios mejor pagados</h5></div>
+          <canvas id="chart-top10"></canvas>
+        </div></div>
+        <div class="col-lg-6"><div class="panel">
+          <div class="panel-head"><h5>Gasto por concepto</h5></div>
+          <canvas id="chart-conceptos"></canvas>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ===== RANKING ===== -->
+    <section data-section="ranking" class="view">
+      <div class="panel">
+        <div class="panel-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h5>Ranking de funcionarios</h5>
+            <small class="text-muted">Ordenado por total anual percibido</small>
+          </div>
+          <div class="d-flex gap-2">
+            <input id="ranking-search" type="search" class="form-control form-control-sm" placeholder="Buscar nombre…" style="width:240px">
+            <button id="ranking-export" class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover" id="ranking-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Cédula</th><th>Nombre</th>
+                <th class="text-end">Enero</th><th class="text-end">Diciembre</th>
+                <th class="text-end">Aguinaldo</th><th class="text-end">Total anual</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <nav class="d-flex justify-content-between align-items-center px-3 py-2">
+          <small class="text-muted" id="ranking-info"></small>
+          <ul class="pagination pagination-sm mb-0" id="ranking-pagination"></ul>
+        </nav>
+      </div>
+    </section>
+
+    <!-- ===== SEARCH (FUNCIONARIO DETAIL) ===== -->
+    <section data-section="search" class="view">
+      <div class="panel mb-3">
+        <div class="panel-head"><h5>Buscar funcionario</h5></div>
+        <div class="p-3">
+          <input id="search-input" type="search" class="form-control" placeholder="Escribí un nombre o cédula…" autocomplete="off">
+          <div id="search-results" class="search-results"></div>
+        </div>
+      </div>
+      <div id="search-detail"></div>
+    </section>
+
+    <!-- ===== POR CONCEPTO ===== -->
+    <section data-section="concepto" class="view">
+      <div class="row g-3">
+        <div class="col-lg-7"><div class="panel">
+          <div class="panel-head"><h5>Distribución por concepto de gasto</h5></div>
+          <canvas id="chart-concepto-barras"></canvas>
+        </div></div>
+        <div class="col-lg-5"><div class="panel">
+          <div class="panel-head"><h5>Tabla detallada</h5></div>
+          <div class="table-responsive">
+            <table class="table table-sm" id="concepto-table">
+              <thead><tr><th>Código</th><th>Denominación</th><th class="text-end">Total</th><th class="text-end">%</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ===== POR ESTADO ===== -->
+    <section data-section="estado" class="view">
+      <div class="row g-3 mb-3">
+        <div class="col-md-4"><div class="stat-card stat-green">
+          <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+          <div class="stat-label">Permanentes</div>
+          <div class="stat-value" id="stat-perm">—</div>
+        </div></div>
+        <div class="col-md-4"><div class="stat-card stat-orange">
+          <div class="stat-icon"><i class="bi bi-briefcase"></i></div>
+          <div class="stat-label">Contratados</div>
+          <div class="stat-value" id="stat-cont">—</div>
+        </div></div>
+        <div class="col-md-4"><div class="stat-card stat-purple">
+          <div class="stat-icon"><i class="bi bi-people"></i></div>
+          <div class="stat-label">Comisionados</div>
+          <div class="stat-value" id="stat-com">—</div>
+        </div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h5>Evolución por estado a lo largo de los años</h5></div>
+        <canvas id="chart-estado-evol"></canvas>
+      </div>
+    </section>
+
+    <!-- ===== EVOLUCIÓN ===== -->
+    <section data-section="evolucion" class="view">
+      <div class="panel mb-3">
+        <div class="panel-head"><h5>Evolución mensual del gasto total</h5></div>
+        <canvas id="chart-evolucion-mensual"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h5>Top 5 funcionarios — evolución anual</h5></div>
+        <canvas id="chart-top5-evol"></canvas>
+      </div>
+    </section>
+
+    <!-- ===== DATOS CRUDOS ===== -->
+    <section data-section="datos" class="view">
+      <div class="panel">
+        <div class="panel-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div><h5>Tabla cruda (filas detalladas)</h5>
+          <small class="text-muted">Una fila por persona/concepto/mes — útil para verificar valores exactos</small></div>
+          <div class="d-flex gap-2">
+            <input id="datos-search" type="search" class="form-control form-control-sm" placeholder="Filtrar…" style="width:240px">
+          </div>
+        </div>
+        <div class="table-responsive" style="max-height: 65vh">
+          <table class="table table-sm table-striped" id="datos-table">
+            <thead class="sticky-top bg-light">
+              <tr><th>Año</th><th>Mes</th><th>Cédula</th><th>Nombre</th>
+              <th>Estado</th><th>Concepto</th><th>Denominación</th>
+              <th>Tipo</th><th class="text-end">Monto</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <nav class="d-flex justify-content-between align-items-center px-3 py-2">
+          <small class="text-muted" id="datos-info"></small>
+          <ul class="pagination pagination-sm mb-0" id="datos-pagination"></ul>
+        </nav>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ MODAL DETALLE ============ -->
+<div class="modal fade" id="detail-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detail-title">Detalle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detail-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCRIPTS ============ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

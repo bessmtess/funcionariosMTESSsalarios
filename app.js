@@ -387,11 +387,11 @@ function renderDetailHtml(cedula){
     </div>
     <div class="detail-section">
       <h6>Evolución mensual por año</h6>
-      <canvas id="detail-chart-mensual" height="100"></canvas>
+      <div class="chart-wrap"><canvas id="detail-chart-mensual"></canvas></div>
     </div>
     <div class="detail-section">
       <h6>Conceptos cobrados (acumulado)</h6>
-      <canvas id="detail-chart-conceptos" height="100"></canvas>
+      <div class="chart-wrap"><canvas id="detail-chart-conceptos"></canvas></div>
     </div>
     <div class="detail-section">
       <h6>Detalle por mes y concepto</h6>

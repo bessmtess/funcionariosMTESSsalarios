@@ -159,6 +159,22 @@ body{
 .panel-head small{font-size:12px}
 .panel canvas{padding:16px; max-height:340px}
 
+/* Wrapper para charts del detalle (modal y vista de búsqueda):
+   altura fija para evitar el crecimiento infinito de Chart.js
+   cuando maintainAspectRatio:false está activo */
+.chart-wrap{
+  position:relative;
+  height:340px;
+  width:100%;
+  margin-top:8px;
+}
+.chart-wrap canvas{
+  position:absolute !important;
+  inset:0;
+  width:100% !important;
+  height:100% !important;
+}
+
 /* ===== TABLES ===== */
 .table thead th{
   font-size:12px; font-weight:600;

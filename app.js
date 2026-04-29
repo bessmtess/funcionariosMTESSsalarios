@@ -376,8 +376,15 @@ function renderDetailHtml(cedula){
 
   return `
     <div class="detail-section">
-      <h4>${nombre}</h4>
-      <div class="text-muted">Cédula: <code>${cedula}</code> · Años: ${aniosPresentes}</div>
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <h4 class="mb-1">${nombre}</h4>
+          <div class="text-muted">Cédula: <code>${cedula}</code> · Años: ${aniosPresentes}</div>
+        </div>
+        <button class="btn-mec" onclick="vincularYAbrir('${cedula}', ${JSON.stringify(nombre).replace(/"/g,'&quot;')})">
+          <i class="bi bi-link-45deg"></i> Vincular y abrir en MEC
+        </button>
+      </div>
       <div class="detail-grid">
         <div class="detail-cell"><div class="label">Total acumulado</div><div class="value">${fmtShort(totalAcum)}</div></div>
         ${data.map(r => `<div class="detail-cell">
@@ -654,6 +661,94 @@ function renderDatos(){
 }
 $('#datos-search').addEventListener('input', () => { datosPage = 1; renderDatos(); });
 
+// función expuesta globalmente desde HTML inline
+window.vincularYAbrir = function(cedula, nombre){
+  setCtx({cedula:String(cedula), nombre:String(nombre), codigo:String(cedula)});
+  // cerrar modal si está abierto
+  const modal = bootstrap.Modal.getInstance(document.getElementById('detail-modal'));
+  if (modal) modal.hide();
+  // ir a vista MEC y sincronizar
+  $$('.nav-link').forEach(x => x.classList.remove('active'));
+  $('.nav-link[data-view="externo"]').classList.add('active');
+  $$('.view').forEach(v => v.classList.remove('active'));
+  $('section[data-section="externo"]').classList.add('active');
+  $('#view-title').textContent = 'Sistema MEC';
+  $('#view-subtitle').textContent = 'Visor externo vinculado al funcionario seleccionado';
+  renderView('externo');
+  setTimeout(externoSyncCtx, 300);
+};
+
+// ===== CONTEXTO VINCULADO (driver del iframe MEC) =====
+const CTX_KEY = 'mtess_ctx';
+const TPL_KEY = 'mtess_externo_tpl';
+const AUTOSYNC_KEY = 'mtess_externo_autosync';
+const TPL_DEFAULT = 'https://www.mec.gov.py/cms_v4/buscar?q={cedula}';
+
+let ctx = JSON.parse(localStorage.getItem(CTX_KEY) || 'null'); // {cedula, nombre, codigo}
+function setCtx(newCtx){
+  ctx = newCtx;
+  if (ctx) localStorage.setItem(CTX_KEY, JSON.stringify(ctx));
+  else localStorage.removeItem(CTX_KEY);
+  renderCtxBanner();
+  // si la vista MEC está activa, sincronizar inmediatamente
+  if ($('section[data-section="externo"]').classList.contains('active') && ctx){
+    if ($('#externo-autosync')?.checked) externoSyncCtx();
+  }
+}
+function renderCtxBanner(){
+  const banner = $('#ctx-banner');
+  if (!banner) return;
+  if (ctx){
+    banner.classList.remove('d-none');
+    $('#ctx-name').textContent = ctx.nombre || '(sin nombre)';
+    $('#ctx-code').textContent = ctx.cedula || ctx.codigo || '';
+    if ($('#ctx-display-mec')){
+      $('#ctx-display-mec').textContent = `${ctx.nombre || ''} · ${ctx.cedula || ctx.codigo || ''}`;
+      $('#ctx-display-mec').classList.remove('empty');
+    }
+  } else {
+    banner.classList.add('d-none');
+    if ($('#ctx-display-mec')){
+      $('#ctx-display-mec').textContent = '— sin selección —';
+      $('#ctx-display-mec').classList.add('empty');
+    }
+  }
+}
+
+function buildExternoUrl(){
+  const tpl = $('#externo-tpl').value || TPL_DEFAULT;
+  if (!ctx) return null;
+  return tpl
+    .replace(/\{cedula\}/g, encodeURIComponent(ctx.cedula || ''))
+    .replace(/\{nombre\}/g, encodeURIComponent(ctx.nombre || ''))
+    .replace(/\{codigo\}/g, encodeURIComponent(ctx.codigo || ctx.cedula || ''));
+}
+
+function externoSyncCtx(){
+  const url = buildExternoUrl();
+  if (!url){
+    alert('Primero seleccioná un funcionario para vincular.');
+    return;
+  }
+  externoLoadUrl(url);
+}
+
+// banner buttons
+document.addEventListener('DOMContentLoaded', () => {
+  $('#ctx-go-mec')?.addEventListener('click', () => {
+    // ir a vista MEC y sincronizar
+    $$('.nav-link').forEach(x => x.classList.remove('active'));
+    $('.nav-link[data-view="externo"]').classList.add('active');
+    $$('.view').forEach(v => v.classList.remove('active'));
+    $('section[data-section="externo"]').classList.add('active');
+    $('#view-title').textContent = 'Sistema MEC';
+    $('#view-subtitle').textContent = 'Visor externo vinculado al funcionario seleccionado';
+    renderView('externo');
+    setTimeout(externoSyncCtx, 200);
+  });
+  $('#ctx-clear')?.addEventListener('click', () => setCtx(null));
+});
+
 // ===== VISOR EXTERNO =====
 const EXTERNO_DEFAULT = 'https://www.mec.gov.py/';
 const EXTERNO_KEY = 'mtess_externo_url';
@@ -704,11 +799,21 @@ function showExternoBlocked(url){
 
 function renderExterno(){
   const frame = $('#externo-frame');
-  const saved = localStorage.getItem(EXTERNO_KEY) || EXTERNO_DEFAULT;
-  $('#externo-url').value = saved;
-  // si nunca se cargó, hacerlo ahora
+  // restaurar plantilla y autosync
+  $('#externo-tpl').value = localStorage.getItem(TPL_KEY) || TPL_DEFAULT;
+  const autosync = localStorage.getItem(AUTOSYNC_KEY);
+  if (autosync !== null) $('#externo-autosync').checked = autosync === '1';
+  renderCtxBanner();
+  // si hay contexto y autosync, cargar URL del contexto; sino, URL guardada
+  let urlToLoad;
+  if (ctx && $('#externo-autosync').checked){
+    urlToLoad = buildExternoUrl();
+  } else {
+    urlToLoad = localStorage.getItem(EXTERNO_KEY) || EXTERNO_DEFAULT;
+  }
+  $('#externo-url').value = urlToLoad;
   if (frame.src === 'about:blank' || !frame.src){
-    externoLoadUrl(saved);
+    externoLoadUrl(urlToLoad);
   }
 }
 
@@ -756,8 +861,18 @@ $('#externo-frame').addEventListener('load', () => {
   $('#externo-loader').style.display = 'none';
 });
 
+// vinculación: persistir plantilla y autosync, sincronizar al click
+$('#externo-tpl').addEventListener('input', e => {
+  localStorage.setItem(TPL_KEY, e.target.value);
+});
+$('#externo-autosync').addEventListener('change', e => {
+  localStorage.setItem(AUTOSYNC_KEY, e.target.checked ? '1' : '0');
+});
+$('#externo-sync').addEventListener('click', externoSyncCtx);
+
 // ===== INIT =====
 function initApp(){
   // sin async; PAGOS, RESUMEN, etc. vienen de data.js
+  renderCtxBanner();
   renderView('overview');
 }

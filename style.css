@@ -205,6 +205,43 @@ body{
   height:100vh !important;
 }
 
+/* ===== Banner contexto vinculado ===== */
+.ctx-banner{
+  margin:0 28px;
+  margin-top:-1px;
+  padding:10px 16px;
+  background:linear-gradient(90deg, rgba(79,70,229,.08), rgba(16,185,129,.08));
+  border:1px solid rgba(79,70,229,.2);
+  border-radius:0 0 10px 10px;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:12px; flex-wrap:wrap;
+  font-size:14px;
+}
+.ctx-banner i{color:var(--primary)}
+.ctx-banner code{background:rgba(79,70,229,.1); color:var(--primary-dark); padding:2px 8px; border-radius:4px}
+.ctx-display{
+  padding:6px 10px; background:#f1f5f9; border-radius:6px;
+  font-size:13px; color:var(--text);
+  min-height:32px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.ctx-display.empty{color:var(--muted); font-style:italic}
+
+/* ===== Botón "ver en MEC" en filas/detalles ===== */
+.btn-mec{
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  color:white;
+  border:0;
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:600;
+  display:inline-flex; align-items:center; gap:6px;
+  cursor:pointer;
+  transition:transform .1s;
+}
+.btn-mec:hover{transform:translateY(-1px); box-shadow:0 4px 12px rgba(79,70,229,.3)}
+
 /* ===== TABLES ===== */
 .table thead th{
   font-size:12px; font-weight:600;

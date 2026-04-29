@@ -85,6 +85,20 @@
       </div>
     </header>
 
+    <!-- ===== Banner contexto vinculado MEC ===== -->
+    <div id="ctx-banner" class="ctx-banner d-none">
+      <div>
+        <i class="bi bi-link-45deg"></i>
+        <strong>Vinculado:</strong>
+        <span id="ctx-name">—</span>
+        <code id="ctx-code" class="ms-2"></code>
+      </div>
+      <div class="btn-group btn-group-sm">
+        <button id="ctx-go-mec" class="btn btn-primary"><i class="bi bi-arrow-up-right-square"></i> Ver en MEC</button>
+        <button id="ctx-clear" class="btn btn-outline-secondary"><i class="bi bi-x"></i> Quitar</button>
+      </div>
+    </div>
+
     <!-- ===== OVERVIEW ===== -->
     <section data-section="overview" class="view active">
       <div class="row g-3 mb-4">
@@ -273,6 +287,30 @@
 
     <!-- ===== VISOR EXTERNO (iframe MEC) ===== -->
     <section data-section="externo" class="view">
+      <div class="panel mb-3">
+        <div class="panel-head"><h5><i class="bi bi-link-45deg"></i> Vinculación con MEC</h5></div>
+        <div class="p-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-6">
+              <label class="form-label small mb-1">Plantilla de URL del MEC <small class="text-muted">(usá <code>{cedula}</code>, <code>{nombre}</code>, <code>{codigo}</code>)</small></label>
+              <input id="externo-tpl" type="text" class="form-control form-control-sm"
+                placeholder="https://mec.gov.py/buscar?ci={cedula}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small mb-1">Contexto actual</label>
+              <div class="ctx-display" id="ctx-display-mec">— sin selección —</div>
+            </div>
+            <div class="col-md-3 text-end">
+              <button id="externo-sync" class="btn btn-success btn-sm"><i class="bi bi-arrow-repeat"></i> Sincronizar ahora</button>
+              <div class="form-check form-switch d-inline-block ms-2">
+                <input class="form-check-input" type="checkbox" id="externo-autosync" checked>
+                <label class="form-check-label small" for="externo-autosync">Auto-sync</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-head d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div class="flex-grow-1 me-3">

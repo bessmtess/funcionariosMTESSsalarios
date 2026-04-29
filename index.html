@@ -58,6 +58,7 @@
       <li><a href="#" class="nav-link" data-view="estado"><i class="bi bi-people"></i> Por estado</a></li>
       <li><a href="#" class="nav-link" data-view="evolucion"><i class="bi bi-graph-up-arrow"></i> Evolución</a></li>
       <li><a href="#" class="nav-link" data-view="datos"><i class="bi bi-table"></i> Datos crudos</a></li>
+      <li><a href="#" class="nav-link" data-view="externo"><i class="bi bi-window-stack"></i> Sistema MEC</a></li>
     </ul>
     <div class="sidebar-footer">
       <button id="logout-btn" class="btn btn-sm btn-outline-light w-100">
@@ -267,6 +268,42 @@
           <small class="text-muted" id="datos-info"></small>
           <ul class="pagination pagination-sm mb-0" id="datos-pagination"></ul>
         </nav>
+      </div>
+    </section>
+
+    <!-- ===== VISOR EXTERNO (iframe MEC) ===== -->
+    <section data-section="externo" class="view">
+      <div class="panel">
+        <div class="panel-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="flex-grow-1 me-3">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text"><i class="bi bi-globe"></i></span>
+              <input id="externo-url" type="url" class="form-control"
+                placeholder="https://..."
+                value="https://www.mec.gov.py/">
+              <button id="externo-go" class="btn btn-primary"><i class="bi bi-arrow-right"></i> Ir</button>
+            </div>
+          </div>
+          <div class="btn-group btn-group-sm" role="group">
+            <button id="externo-back" class="btn btn-outline-secondary" title="Atrás (puede no funcionar si el sitio es de otro origen)"><i class="bi bi-arrow-left"></i></button>
+            <button id="externo-reload" class="btn btn-outline-secondary" title="Recargar"><i class="bi bi-arrow-clockwise"></i></button>
+            <button id="externo-fs" class="btn btn-outline-secondary" title="Pantalla completa"><i class="bi bi-fullscreen"></i></button>
+            <button id="externo-newtab" class="btn btn-outline-primary" title="Abrir en pestaña nueva"><i class="bi bi-box-arrow-up-right"></i></button>
+          </div>
+        </div>
+        <div id="externo-status" class="px-3 py-2 d-none"></div>
+        <div class="iframe-wrap">
+          <div id="externo-loader" class="iframe-loader">
+            <div class="spinner-border text-primary"></div>
+            <div class="mt-2 text-muted">Cargando…</div>
+          </div>
+          <iframe id="externo-frame"
+            src="about:blank"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
+            referrerpolicy="no-referrer-when-downgrade"
+            allow="fullscreen"
+            allowfullscreen></iframe>
+        </div>
       </div>
     </section>
   </main>

@@ -101,6 +101,7 @@ function filterResumen(year){
 // ===== VIEWS =====
 function renderView(view){
   if (view === 'overview') renderOverview();
+  else if (view === 'externo') renderExterno();
   else if (view === 'ranking') renderRanking();
   else if (view === 'search') renderSearch();
   else if (view === 'concepto') renderConcepto();
@@ -652,6 +653,108 @@ function renderDatos(){
   renderPagination('datos-pagination', datosPage, totalPages, p => { datosPage = p; renderDatos(); });
 }
 $('#datos-search').addEventListener('input', () => { datosPage = 1; renderDatos(); });
+
+// ===== VISOR EXTERNO =====
+const EXTERNO_DEFAULT = 'https://www.mec.gov.py/';
+const EXTERNO_KEY = 'mtess_externo_url';
+let externoLoadTimer = null;
+
+function externoLoadUrl(url){
+  const frame = $('#externo-frame');
+  const status = $('#externo-status');
+  const loader = $('#externo-loader');
+  if (!url) return;
+  // normalizar
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  $('#externo-url').value = url;
+  localStorage.setItem(EXTERNO_KEY, url);
+  status.classList.add('d-none');
+  loader.style.display = 'flex';
+
+  // detectar bloqueo: si pasaron 8 seg y no disparó 'load', mostrar fallback
+  clearTimeout(externoLoadTimer);
+  externoLoadTimer = setTimeout(() => {
+    showExternoBlocked(url);
+  }, 8000);
+
+  frame.src = url;
+}
+
+function showExternoBlocked(url){
+  const status = $('#externo-status');
+  const loader = $('#externo-loader');
+  loader.style.display = 'none';
+  status.classList.remove('d-none');
+  status.className = 'px-3 py-3 alert alert-warning mb-0';
+  status.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <strong><i class="bi bi-exclamation-triangle"></i> El sitio bloqueó el embebido.</strong>
+        <div class="small text-muted mt-1">
+          <code>${url}</code> envía cabeceras <code>X-Frame-Options</code> o
+          <code>Content-Security-Policy: frame-ancestors</code> que impiden mostrarlo dentro de otra página.
+        </div>
+      </div>
+      <a href="${url}" target="_blank" class="btn btn-primary btn-sm">
+        <i class="bi bi-box-arrow-up-right"></i> Abrir en pestaña
+      </a>
+    </div>
+  `;
+}
+
+function renderExterno(){
+  const frame = $('#externo-frame');
+  const saved = localStorage.getItem(EXTERNO_KEY) || EXTERNO_DEFAULT;
+  $('#externo-url').value = saved;
+  // si nunca se cargó, hacerlo ahora
+  if (frame.src === 'about:blank' || !frame.src){
+    externoLoadUrl(saved);
+  }
+}
+
+// listeners (una sola vez)
+$('#externo-go').addEventListener('click', () => externoLoadUrl($('#externo-url').value.trim()));
+$('#externo-url').addEventListener('keydown', e => {
+  if (e.key === 'Enter'){ e.preventDefault(); externoLoadUrl(e.target.value.trim()); }
+});
+$('#externo-reload').addEventListener('click', () => {
+  const url = $('#externo-url').value.trim();
+  if (url) externoLoadUrl(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now());
+});
+$('#externo-back').addEventListener('click', () => {
+  // history.back() normalmente falla por cross-origin; igual lo intentamos
+  try { $('#externo-frame').contentWindow.history.back(); }
+  catch(e){ /* silencioso */ }
+});
+$('#externo-newtab').addEventListener('click', () => {
+  const url = $('#externo-url').value.trim();
+  if (url) window.open(url, '_blank', 'noopener');
+});
+$('#externo-fs').addEventListener('click', () => {
+  const wrap = $('.iframe-wrap');
+  if (wrap.classList.contains('fullscreen')){
+    wrap.classList.remove('fullscreen');
+    $('#externo-fs').innerHTML = '<i class="bi bi-fullscreen"></i>';
+  } else {
+    wrap.classList.add('fullscreen');
+    $('#externo-fs').innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+  }
+});
+// salir de fullscreen con ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){
+    const wrap = $('.iframe-wrap');
+    if (wrap && wrap.classList.contains('fullscreen')){
+      wrap.classList.remove('fullscreen');
+      $('#externo-fs').innerHTML = '<i class="bi bi-fullscreen"></i>';
+    }
+  }
+});
+// load del iframe: ocultar loader y limpiar el timer de bloqueo
+$('#externo-frame').addEventListener('load', () => {
+  clearTimeout(externoLoadTimer);
+  $('#externo-loader').style.display = 'none';
+});
 
 // ===== INIT =====
 function initApp(){
